@@ -51,7 +51,6 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
             'ID pemesanan kosong. Refresh halaman lalu coba lagi.');
       }
 
-      // cek booking dulu
       final booking =
           await BookingService.getBookingById(bookingId);
 
@@ -114,7 +113,6 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Summary card
             Card(
               color: const Color(0xFF1A1A2E),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -155,7 +153,6 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Payment method
             const Text('Metode Pembayaran',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 12),
@@ -169,7 +166,6 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                 ))),
             const SizedBox(height: 16),
 
-            // Proof URL (for transfer)
             if (_selectedMethod == 'transfer') ...[
               const Text('URL Bukti Transfer',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
@@ -187,7 +183,6 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
               const SizedBox(height: 16),
             ],
 
-            // Notes
             const Text('Catatan (Opsional)',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 8),
@@ -203,7 +198,6 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Submit
             SizedBox(
               width: double.infinity,
               height: 50,

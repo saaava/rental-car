@@ -6,9 +6,6 @@ import 'package:contoh_modul6/services/auth_service.dart';
 class PaymentService {
   static String get _base => '${ApiConfig.baseUrl}/api/payments';
 
-  // ==========================
-  // CREATE PAYMENT
-  // ==========================
   static Future<PaymentModel> createPayment({
     required String bookingId,
     required String method,
@@ -58,9 +55,6 @@ class PaymentService {
     }
   }
 
-  // ==========================
-  // GET MY PAYMENTS (user)
-  // ==========================
   static Future<List<PaymentModel>> getMyPayments() async {
     final url = Uri.parse(_base);
 
@@ -88,9 +82,6 @@ class PaymentService {
     }
   }
 
-  // ==========================
-  // GET ALL PAYMENTS (admin)
-  // ==========================
   static Future<List<PaymentModel>> getAllPayments() async {
     final url = Uri.parse(_base);
 
@@ -118,9 +109,6 @@ class PaymentService {
     }
   }
 
-  // ==========================
-  // GET PAYMENT BY ID
-  // ==========================
   static Future<PaymentModel> getPaymentById(String paymentId) async {
     final url = Uri.parse('$_base/$paymentId');
 
@@ -140,11 +128,6 @@ class PaymentService {
     }
   }
 
-  // ==========================
-  // VERIFY PAYMENT (admin)
-  // API: PUT /api/payments/{id}/verify
-  // Body wajib: { "status": "success" } atau { "status": "failed" }
-  // ==========================
   static Future<PaymentModel> verifyPayment(
     String paymentId, {
     String status = 'success',
@@ -182,10 +165,6 @@ class PaymentService {
     }
   }
 
-  // ==========================
-  // REJECT PAYMENT (admin)
-  // Pakai endpoint verify dengan status 'failed'
-  // ==========================
   static Future<PaymentModel> rejectPayment(
     String paymentId, {
     String? reason,
@@ -193,10 +172,6 @@ class PaymentService {
     return verifyPayment(paymentId, status: 'failed', notes: reason);
   }
 
-  // ==========================
-  // REFUND PAYMENT (admin)
-  // API: PUT /api/payments/{id}/refund
-  // ==========================
   static Future<PaymentModel> refundPayment(
     String paymentId, {
     String? reason,

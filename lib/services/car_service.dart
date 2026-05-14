@@ -37,18 +37,15 @@ class CarService {
       final data = body['data'];
       final List<dynamic> carsJson = data['cars'] ?? [];
       final cars = carsJson.map((json) => CarModel.fromJson(json)).toList();
-      // final pagination = data['pagination'];
 
       return {
         'cars': cars,
-        // 'pagination': pagination,
       };
     } else {
       throw Exception(body['message'] ?? 'Gagal mengambil data mobil');
     }
   }
 
-  /// Ambil detail satu mobil berdasarkan ID
   static Future<CarModel> getCarById(String id) async {
     final url = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.carsPrefix}/$id');
 
@@ -81,7 +78,6 @@ class CarService {
     }
   }
 
-  /// Update data mobil (Admin only)
   static Future<CarModel> updateCar(String id, CarModel car) async {
     final url = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.carsPrefix}/$id');
 
@@ -100,7 +96,6 @@ class CarService {
     }
   }
 
-  /// Hapus mobil (Admin only)
   static Future<void> deleteCar(String id) async {
     final url = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.carsPrefix}/$id');
 

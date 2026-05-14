@@ -62,7 +62,6 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen>
           p.status == 'refunded')
       .toList();
 
-  // FIX UTAMA: dialog sekarang kirim { "status": "success" } ke API
   Future<void> _verifyPayment(PaymentModel p) async {
     final notesController = TextEditingController();
 
@@ -103,14 +102,12 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen>
       ),
     );
 
-    // Ambil teks SEBELUM dispose
     final notes = notesController.text.trim();
     notesController.dispose();
 
     if (confirm != true) return;
 
     try {
-      // Kirim status: 'success' sesuai yang diminta API
       await PaymentService.verifyPayment(p.id!, status: 'success', notes: notes.isEmpty ? null : notes);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -133,8 +130,6 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen>
     }
   }
 
-  // FIX: rejectPayment pakai status 'failed' lewat verifyPayment
-  // FIX: use-after-dispose — baca teks sebelum dispose
   Future<void> _rejectPayment(PaymentModel p) async {
     final reasonController = TextEditingController();
 

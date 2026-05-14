@@ -86,12 +86,11 @@ class _CarFormScreenState extends State<CarFormScreen> {
         location: _locationController.text.isEmpty ? null : _locationController.text.trim(),
         description: _descController.text.isEmpty ? null : _descController.text.trim(),
         isAvailable: _isAvailable,
-        images: widget.car?.images ?? [], // Belum handle upload gambar
-        features: widget.car?.features ?? [], // Belum handle array fitur
+        images: widget.car?.images ?? [],
+        features: widget.car?.features ?? [],
       );
 
       if (widget.car == null) {
-        // Create
         await CarService.createCar(carData);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -99,7 +98,6 @@ class _CarFormScreenState extends State<CarFormScreen> {
           );
         }
       } else {
-        // Update
         await CarService.updateCar(widget.car!.id!, carData);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -109,7 +107,7 @@ class _CarFormScreenState extends State<CarFormScreen> {
       }
       
       if (mounted) {
-        Navigator.pop(context, true); // Return true to trigger refresh
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {

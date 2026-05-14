@@ -44,7 +44,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        // Setelah register sukses, langsung masuk ke Home
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const CarListScreen()),

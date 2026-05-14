@@ -24,7 +24,6 @@ class PaymentModel {
   });
 
   factory PaymentModel.fromJson(Map<String, dynamic> json) {
-    // Resolve bookingId — bisa berupa String ID atau Map object
     String? bookingId;
     final rawBooking = json['booking'] ?? json['bookingId'];
     if (rawBooking is String) {
@@ -33,7 +32,6 @@ class PaymentModel {
       bookingId = rawBooking['_id'] as String? ?? rawBooking['id'] as String?;
     }
 
-    // Resolve userId
     String? userId;
     final rawUser = json['user'] ?? json['userId'];
     if (rawUser is String) {
@@ -42,7 +40,6 @@ class PaymentModel {
       userId = rawUser['_id'] as String? ?? rawUser['id'] as String?;
     }
 
-    // Method field: API docs pakai "method", tapi jaga-jaga ada "paymentMethod"
     final method = json['method'] as String?
         ?? json['paymentMethod'] as String?
         ?? 'transfer_bank';
@@ -54,7 +51,6 @@ class PaymentModel {
       amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       method: method,
       status: json['status'] as String? ?? 'pending',
-      // API pakai "proofImage" berdasarkan docs
       proofImageUrl: json['proofImage'] as String?
           ?? json['proofImageUrl'] as String?,
       notes: json['notes'] as String?,

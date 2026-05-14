@@ -6,9 +6,6 @@ import 'package:contoh_modul6/services/auth_service.dart';
 class BookingService {
   static String get _base => '${ApiConfig.baseUrl}/api/bookings';
 
-  // =========================
-  // GET MY BOOKINGS
-  // =========================
   static Future<List<BookingModel>> getMyBookings() async {
     final url = Uri.parse(_base);
 
@@ -27,7 +24,6 @@ class BookingService {
 
       List<dynamic> list = [];
 
-      // fleksibel sesuai bentuk API
       if (data is Map && data['bookings'] != null) {
         list = data['bookings'];
       } else if (data is List) {
@@ -43,9 +39,6 @@ class BookingService {
     }
   }
 
-  // =========================
-  // GET ALL BOOKINGS
-  // =========================
   static Future<List<BookingModel>> getAllBookings() async {
     final url = Uri.parse(_base);
 
@@ -73,9 +66,6 @@ class BookingService {
     }
   }
 
-  // =========================
-  // CREATE BOOKING
-  // =========================
   static Future<BookingModel> createBooking({
     required String carId,
     required DateTime startDate,
@@ -114,9 +104,6 @@ class BookingService {
     }
   }
 
-  // =========================
-  // CONFIRM BOOKING
-  // =========================
   static Future<BookingModel> confirmBooking(String bookingId) async {
     final url = Uri.parse('$_base/$bookingId/confirm');
 
@@ -135,9 +122,6 @@ class BookingService {
     }
   }
 
-  // =========================
-  // CANCEL BOOKING
-  // =========================
   static Future<BookingModel> cancelBooking(String bookingId) async {
     final url = Uri.parse('$_base/$bookingId/cancel');
 
@@ -156,9 +140,6 @@ class BookingService {
     }
   }
 
-  // =========================
-  // GET BOOKING BY ID
-  // =========================
   static Future<BookingModel> getBookingById(String bookingId) async {
     final url = Uri.parse('$_base/$bookingId');
 
