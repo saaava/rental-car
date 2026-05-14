@@ -17,7 +17,8 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen>
   String _error = '';
   late TabController _tabController;
 
-  final _currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+  final _currency =
+      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
   final _dateFormat = DateFormat('dd MMM yyyy, HH:mm');
 
   @override
@@ -34,33 +35,65 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen>
   }
 
   Future<void> _fetchPayments() async {
-    setState(() { _isLoading = true; _error = ''; });
+    setState(() {
+      _isLoading = true;
+      _error = '';
+    });
     try {
       final payments = await PaymentService.getAllPayments();
       if (mounted) setState(() => _all = payments);
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+      if (mounted) {
+        setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  List<PaymentModel> get _pending => _all.where((p) => p.status == 'pending').toList();
-  List<PaymentModel> get _verified => _all.where((p) => p.status == 'success' || p.status == 'verified').toList();
-  List<PaymentModel> get _rejected => _all.where((p) => p.status == 'failed' || p.status == 'rejected').toList();
+  List<PaymentModel> get _pending =>
+      _all.where((p) => p.status == 'pending').toList();
+  List<PaymentModel> get _verified =>
+      _all.where((p) => p.status == 'success' || p.status == 'verified').toList();
+  List<PaymentModel> get _rejected => _all
+      .where((p) =>
+          p.status == 'failed' ||
+          p.status == 'rejected' ||
+          p.status == 'refunded')
+      .toList();
 
+  // FIX UTAMA: dialog sekarang kirim { "status": "success" } ke API
   Future<void> _verifyPayment(PaymentModel p) async {
+    final notesController = TextEditingController();
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Verifikasi Pembayaran'),
-        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Verifikasi pembayaran ${_currency.format(p.amount)}?'),
-          const SizedBox(height: 8),
-          Text('Metode: ${p.methodLabel}', style: const TextStyle(fontWeight: FontWeight.bold)),
-        ]),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Setujui pembayaran ${_currency.format(p.amount)}?'),
+            const SizedBox(height: 4),
+            Text('Metode: ${p.methodLabel}',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: notesController,
+              decoration: const InputDecoration(
+                labelText: 'Catatan (opsional)',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+            ),
+          ],
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
@@ -69,45 +102,66 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen>
         ],
       ),
     );
+
+    // Ambil teks SEBELUM dispose
+    final notes = notesController.text.trim();
+    notesController.dispose();
+
     if (confirm != true) return;
 
     try {
-      await PaymentService.verifyPayment(p.id!);
+      // Kirim status: 'success' sesuai yang diminta API
+      await PaymentService.verifyPayment(p.id!, status: 'success', notes: notes.isEmpty ? null : notes);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pembayaran diverifikasi'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Pembayaran berhasil diverifikasi'),
+            backgroundColor: Colors.green,
+          ),
         );
         _fetchPayments();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
   }
 
+  // FIX: rejectPayment pakai status 'failed' lewat verifyPayment
+  // FIX: use-after-dispose — baca teks sebelum dispose
   Future<void> _rejectPayment(PaymentModel p) async {
     final reasonController = TextEditingController();
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Tolak Pembayaran'),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text('Tolak pembayaran ${_currency.format(p.amount)}?'),
-          const SizedBox(height: 12),
-          TextField(
-            controller: reasonController,
-            decoration: const InputDecoration(
-              labelText: 'Alasan penolakan (opsional)',
-              border: OutlineInputBorder(),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Tolak pembayaran ${_currency.format(p.amount)}?'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: reasonController,
+              decoration: const InputDecoration(
+                labelText: 'Alasan penolakan (opsional)',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
             ),
-            maxLines: 2,
-          ),
-        ]),
+          ],
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -116,21 +170,31 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen>
         ],
       ),
     );
+
+    // Ambil teks SEBELUM dispose
+    final reason = reasonController.text.trim();
     reasonController.dispose();
+
     if (confirm != true) return;
 
     try {
-      await PaymentService.rejectPayment(p.id!, reason: reasonController.text.trim());
+      await PaymentService.rejectPayment(p.id!, reason: reason.isEmpty ? null : reason);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pembayaran ditolak'), backgroundColor: Colors.orange),
+          const SnackBar(
+            content: Text('Pembayaran ditolak'),
+            backgroundColor: Colors.orange,
+          ),
         );
         _fetchPayments();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -138,12 +202,17 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen>
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'pending': return Colors.orange;
+      case 'pending':
+        return Colors.orange;
       case 'success':
-      case 'verified': return Colors.green;
+      case 'verified':
+        return Colors.green;
       case 'failed':
-      case 'rejected': return Colors.red;
-      default: return Colors.grey;
+      case 'rejected':
+      case 'refunded':
+        return Colors.red;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -162,24 +231,31 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen>
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A1A2E),
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF1A1A2E),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(_currency.format(p.amount),
-                        style: const TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(
+                      _currency.format(p.amount),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: _statusColor(p.status),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Text(p.statusLabel,
-                          style: const TextStyle(color: Colors.white, fontSize: 11)),
+                      child: Text(
+                        p.statusLabel,
+                        style: const TextStyle(color: Colors.white, fontSize: 11),
+                      ),
                     ),
                   ],
                 ),
@@ -189,9 +265,10 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _Row(Icons.payment, 'Metode', p.methodLabel),
+                    _InfoRow(Icons.payment, 'Metode', p.methodLabel),
                     if (p.createdAt != null)
-                      _Row(Icons.access_time, 'Waktu', _dateFormat.format(p.createdAt!)),
+                      _InfoRow(Icons.access_time, 'Waktu',
+                          _dateFormat.format(p.createdAt!)),
                     if (p.proofImageUrl != null && p.proofImageUrl!.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       Container(
@@ -217,7 +294,7 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen>
                       ),
                     ],
                     if (p.notes != null && p.notes!.isNotEmpty)
-                      _Row(Icons.note, 'Catatan', p.notes!),
+                      _InfoRow(Icons.note, 'Catatan', p.notes!),
                     if (showActions) ...[
                       const SizedBox(height: 10),
                       Row(children: [
@@ -229,7 +306,8 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen>
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
                               foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
                             ),
                           ),
                         ),
@@ -242,7 +320,8 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen>
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.red,
                               side: const BorderSide(color: Colors.red),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
                             ),
                           ),
                         ),
@@ -280,11 +359,20 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen>
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error.isNotEmpty
-              ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text(_error, style: const TextStyle(color: Colors.red)),
-                  const SizedBox(height: 12),
-                  ElevatedButton(onPressed: _fetchPayments, child: const Text('Coba Lagi')),
-                ]))
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(_error,
+                          style: const TextStyle(color: Colors.red),
+                          textAlign: TextAlign.center),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                          onPressed: _fetchPayments,
+                          child: const Text('Coba Lagi')),
+                    ],
+                  ),
+                )
               : RefreshIndicator(
                   onRefresh: _fetchPayments,
                   child: TabBarView(
@@ -300,11 +388,11 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen>
   }
 }
 
-class _Row extends StatelessWidget {
+class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  const _Row(this.icon, this.label, this.value);
+  const _InfoRow(this.icon, this.label, this.value);
 
   @override
   Widget build(BuildContext context) {
@@ -313,7 +401,8 @@ class _Row extends StatelessWidget {
       child: Row(children: [
         Icon(icon, size: 14, color: Colors.grey[500]),
         const SizedBox(width: 8),
-        Text('$label: ', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+        Text('$label: ',
+            style: TextStyle(color: Colors.grey[600], fontSize: 13)),
         Expanded(child: Text(value, style: const TextStyle(fontSize: 13))),
       ]),
     );

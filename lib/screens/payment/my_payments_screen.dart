@@ -15,7 +15,8 @@ class _MyPaymentsScreenState extends State<MyPaymentsScreen> {
   bool _isLoading = true;
   String _error = '';
 
-  final _currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+  final _currency =
+      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
   final _dateFormat = DateFormat('dd MMM yyyy, HH:mm');
 
   @override
@@ -25,12 +26,17 @@ class _MyPaymentsScreenState extends State<MyPaymentsScreen> {
   }
 
   Future<void> _fetchPayments() async {
-    setState(() { _isLoading = true; _error = ''; });
+    setState(() {
+      _isLoading = true;
+      _error = '';
+    });
     try {
       final payments = await PaymentService.getMyPayments();
       if (mounted) setState(() => _payments = payments);
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+      if (mounted) {
+        setState(() => _error = e.toString().replaceAll('Exception: ', ''));
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -38,19 +44,33 @@ class _MyPaymentsScreenState extends State<MyPaymentsScreen> {
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'pending': return Colors.orange;
-      case 'verified': return Colors.green;
-      case 'rejected': return Colors.red;
-      default: return Colors.grey;
+      case 'pending':
+        return Colors.orange;
+      case 'success':
+      case 'verified':
+        return Colors.green;
+      case 'failed':
+      case 'rejected':
+      case 'refunded':
+        return Colors.red;
+      default:
+        return Colors.grey;
     }
   }
 
   IconData _statusIcon(String status) {
     switch (status) {
-      case 'pending': return Icons.schedule;
-      case 'verified': return Icons.check_circle;
-      case 'rejected': return Icons.cancel;
-      default: return Icons.info;
+      case 'pending':
+        return Icons.schedule;
+      case 'success':
+      case 'verified':
+        return Icons.check_circle;
+      case 'failed':
+      case 'rejected':
+      case 'refunded':
+        return Icons.cancel;
+      default:
+        return Icons.info;
     }
   }
 
@@ -66,12 +86,17 @@ class _MyPaymentsScreenState extends State<MyPaymentsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _error.isNotEmpty
               ? Center(
-                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text(_error, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
-                    const SizedBox(height: 12),
-                    ElevatedButton(onPressed: _fetchPayments, child: const Text('Coba Lagi')),
-                  ]),
-                )
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                      Text(_error,
+                          style: const TextStyle(color: Colors.red),
+                          textAlign: TextAlign.center),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                          onPressed: _fetchPayments,
+                          child: const Text('Coba Lagi')),
+                    ]))
               : _payments.isEmpty
                   ? const Center(child: Text('Belum ada riwayat pembayaran'))
                   : RefreshIndicator(
@@ -83,7 +108,8 @@ class _MyPaymentsScreenState extends State<MyPaymentsScreen> {
                           final p = _payments[i];
                           return Card(
                             margin: const EdgeInsets.only(bottom: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                             elevation: 2,
                             child: Padding(
                               padding: const EdgeInsets.all(14),
@@ -91,7 +117,8 @@ class _MyPaymentsScreenState extends State<MyPaymentsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
                                         _currency.format(p.amount),
@@ -102,21 +129,29 @@ class _MyPaymentsScreenState extends State<MyPaymentsScreen> {
                                         ),
                                       ),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 4),
                                         decoration: BoxDecoration(
-                                          color: _statusColor(p.status).withOpacity(0.15),
-                                          borderRadius: BorderRadius.circular(20),
+                                          color: _statusColor(p.status)
+                                              .withOpacity(0.15),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Icon(_statusIcon(p.status),
-                                                size: 13, color: _statusColor(p.status)),
+                                                size: 13,
+                                                color: _statusColor(p.status)),
                                             const SizedBox(width: 4),
-                                            Text(p.statusLabel,
-                                                style: TextStyle(
-                                                    fontSize: 12, color: _statusColor(p.status),
-                                                    fontWeight: FontWeight.bold)),
+                                            Text(
+                                              p.statusLabel,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: _statusColor(p.status),
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -124,27 +159,41 @@ class _MyPaymentsScreenState extends State<MyPaymentsScreen> {
                                   ),
                                   const SizedBox(height: 8),
                                   Row(children: [
-                                    Icon(Icons.payment, size: 14, color: Colors.grey[600]),
+                                    Icon(Icons.payment,
+                                        size: 14, color: Colors.grey[600]),
                                     const SizedBox(width: 6),
-                                    Text(p.methodLabel, style: TextStyle(color: Colors.grey[700])),
+                                    Text(p.methodLabel,
+                                        style: TextStyle(
+                                            color: Colors.grey[700])),
                                   ]),
                                   if (p.createdAt != null) ...[
                                     const SizedBox(height: 4),
                                     Row(children: [
-                                      Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
+                                      Icon(Icons.access_time,
+                                          size: 14, color: Colors.grey[600]),
                                       const SizedBox(width: 6),
-                                      Text(_dateFormat.format(p.createdAt!),
-                                          style: TextStyle(color: Colors.grey[700], fontSize: 12)),
+                                      Text(
+                                        _dateFormat.format(p.createdAt!),
+                                        style: TextStyle(
+                                            color: Colors.grey[700],
+                                            fontSize: 12),
+                                      ),
                                     ]),
                                   ],
-                                  if (p.notes != null && p.notes!.isNotEmpty) ...[
+                                  if (p.notes != null &&
+                                      p.notes!.isNotEmpty) ...[
                                     const SizedBox(height: 4),
                                     Row(children: [
-                                      Icon(Icons.note, size: 14, color: Colors.grey[600]),
+                                      Icon(Icons.note,
+                                          size: 14, color: Colors.grey[600]),
                                       const SizedBox(width: 6),
                                       Expanded(
-                                        child: Text(p.notes!,
-                                            style: TextStyle(color: Colors.grey[700], fontSize: 12)),
+                                        child: Text(
+                                          p.notes!,
+                                          style: TextStyle(
+                                              color: Colors.grey[700],
+                                              fontSize: 12),
+                                        ),
                                       ),
                                     ]),
                                   ],
